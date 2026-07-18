@@ -1,8 +1,18 @@
+<div align="center">
+
 ![sentinelmcp Banner](https://raw.githubusercontent.com/MusaIslamFahad/n8n-free-lead-outreach-pipeline/main/assets/banner.png)
 
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![n8n](https://img.shields.io/badge/n8n-workflow-EA4B71?logo=n8n&logoColor=white)
+![Hunter.io](https://img.shields.io/badge/enrichment-Hunter.io-FF7A59)
+![Google Sheets](https://img.shields.io/badge/database-Google%20Sheets-34A853?logo=googlesheets&logoColor=white)
+![Status](https://img.shields.io/badge/status-active-brightgreen)
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blueviolet.svg)
+![Stars](https://img.shields.io/github/stars/MusaIslamFahad/n8n-lead-outreach-pipeline?style=social)
 
 An end-to-end, self-hosted lead generation and cold outreach pipeline built as a single [n8n](https://n8n.io) workflow. It finds contacts at target companies, emails them automatically, watches your inbox for replies, and sends you a daily digest — all backed by a Google Sheet as the "database."
 
+</div>
 ---
 
 ## What it does
