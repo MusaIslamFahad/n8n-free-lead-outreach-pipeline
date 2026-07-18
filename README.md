@@ -1,4 +1,5 @@
-# Lead Gen → Outreach → Reply Digest (n8n Workflow)
+![sentinelmcp Banner](https://raw.githubusercontent.com/MusaIslamFahad/n8n-free-lead-outreach-pipeline/main/assets/banner.png)
+
 
 An end-to-end, self-hosted lead generation and cold outreach pipeline built as a single [n8n](https://n8n.io) workflow. It finds contacts at target companies, emails them automatically, watches your inbox for replies, and sends you a daily digest — all backed by a Google Sheet as the "database."
 
