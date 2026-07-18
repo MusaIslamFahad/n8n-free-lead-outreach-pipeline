@@ -2,6 +2,8 @@
 
 An end-to-end, self-hosted lead generation and cold outreach pipeline built as a single [n8n](https://n8n.io) workflow. It finds contacts at target companies, emails them automatically, watches your inbox for replies, and sends you a daily digest — all backed by a Google Sheet as the "database."
 
+---
+
 ## What it does
 
 The workflow is organized into four independent branches that share one Google Sheet:
@@ -20,12 +22,16 @@ TargetDomains ──▶ [Hunter.io lookup] ──▶ Leads ──▶ [Send email
 Inbox (IMAP) ──▶ [Match sender] ──▶ Replies ┘──▶ [Daily digest email]
 ```
 
+---
+
 ## Requirements
 
 - A running [n8n](https://n8n.io) instance (cloud or self-hosted, v1.x+)
 - A Google account with a Google Sheet (see [Sheet setup](#1-create-the-google-sheet))
 - A [Hunter.io](https://hunter.io) account and API key (free tier works for testing)
 - An email account for sending (SMTP) and for watching replies (IMAP) — these can be the same inbox
+
+---
 
 ## Setup
 
@@ -100,6 +106,50 @@ Once everything checks out, toggle **Active** in the top-right of the n8n editor
 - **Matching replies to leads**: reply detection matches purely on sender email address against the `Leads` sheet, so make sure leads reply from the same address you emailed.
 - **Swap the data store**: the workflow uses Google Sheets for simplicity, but the same shape (append/update/read by column) maps cleanly onto Airtable, Postgres, or Notion if you'd rather not use Sheets.
 
-## License
+---
 
-[MIT](./LICENSE) — use it, fork it, adapt it.
+## 🤝 Contributing
+
+Contributions are welcome! If you'd like to improve the project:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Commit your changes (`git commit -m 'Add some feature'`)
+4. Push to the branch (`git push origin feature/your-feature`)
+5. Open a Pull Request
+
+**Ideas for contributions:** a Postgres/Airtable backend as an alternative to Google Sheets, support for other enrichment providers (Apollo, Clearbit) alongside Hunter.io, a follow-up sequence (2nd/3rd touch) branch, unsubscribe/bounce handling, or a Dockerized n8n setup for one-command local testing.
+
+---
+
+## 👤 Author
+
+**Md. Musa Islam Fahad**  
+CSE (Data Science) · Daffodil International University, Dhaka  
+📧 musa.islam.fahad@gmail.com  
+🌐 [Portfolio](https://musaislamfahad.vercel.app) · [GitHub](https://github.com/MusaIslamFahad) · [LinkedIn](https://linkedin.com/in/md-musa-islam-fahad-b18759249)
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see [LICENSE](LICENSE) for details.  
+Free to use, modify, and deploy.
+
+---
+
+## 🙏 Acknowledgements
+
+- [n8n](https://n8n.io) - The workflow automation engine this project is built on
+- [Hunter.io](https://hunter.io) - Email discovery API used for lead enrichment
+- [Google Sheets API](https://developers.google.com/sheets/api) - Lightweight data store for leads and replies
+
+---
+
+<div align="center">
+
+Built as a demonstration of automated, no-code lead generation and outreach.
+
+**[⬆ Back to Top](#lead-gen--outreach--reply-digest-n8n-workflow)**
+
+</div>
