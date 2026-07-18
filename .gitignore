@@ -1,0 +1,17 @@
+# n8n
+.n8n/
+n8n_data/
+
+# Environment / secrets
+.env
+*.env.local
+credentials.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp

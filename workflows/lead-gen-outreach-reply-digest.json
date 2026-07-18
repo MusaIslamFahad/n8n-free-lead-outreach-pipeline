@@ -1,0 +1,1177 @@
+{
+  "name": "Lead Gen -> Outreach -> Reply Digest",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## \ud83d\udd35 BRANCH A \u2014 Lead Generation\nFinds a domain in **TargetDomains** that hasn't been processed, looks up contacts at that domain via Hunter.io, and adds them to **Leads**.\n\nSet up the TargetDomains sheet with company websites you want to reach into.",
+        "height": 260,
+        "width": 380,
+        "color": 5
+      },
+      "id": "c6ae1da9-120b-435c-a694-64eebc762eec",
+      "name": "Branch A Label",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -500,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## \ud83d\udfe2 BRANCH B \u2014 Send Outreach\nEvery day, sends one email to each lead with Status = New, then marks them Sent.\nEdit the email template in \"Build Email Content\".",
+        "height": 260,
+        "width": 380,
+        "color": 4
+      },
+      "id": "202fddfa-2f6e-4241-b200-79bc2d808ed4",
+      "name": "Branch B Label",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -500,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## \ud83d\udfe0 BRANCH C \u2014 Reply Detection\nWatches your inbox live. When a new email arrives, checks if the sender is a known lead. If yes, logs it to **Replies** and updates their Status.",
+        "height": 260,
+        "width": 380,
+        "color": 6
+      },
+      "id": "8d3efed2-df27-4044-a8d5-69d25cfdede2",
+      "name": "Branch C Label",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -500,
+        1180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## \ud83d\udfe3 BRANCH D \u2014 Morning Digest\nEvery morning, emails you a summary of all replies received since the last digest.",
+        "height": 260,
+        "width": 380,
+        "color": 7
+      },
+      "id": "9f39a748-30ce-4950-aade-b769884da8d5",
+      "name": "Branch D Label",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -500,
+        1720
+      ]
+    },
+    {
+      "parameters": {
+        "content": "# \u2699\ufe0f Before you activate\n1. Create your Google Sheet with tabs: **TargetDomains**, **Leads**, **Replies** (see column names in the setup guide)\n2. Add credentials: Google Sheets (OAuth2), SMTP (send), IMAP (watch inbox), Query Auth for Hunter.io\n3. Open each Google Sheets node and pick your spreadsheet + sheet tab from the dropdown\n4. Open the HTTP Request node and select your Hunter.io credential\n5. Replace placeholder emails (your@yourdomain.com) with your real address\n6. Test each branch with its Manual/Execute button before activating\n7. Toggle Active (top right) once everything is wired up",
+        "height": 420,
+        "width": 480,
+        "color": 3
+      },
+      "id": "1ae8e496-bb4b-4505-bcc0-a39be4fe2f6b",
+      "name": "Setup Notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1020,
+        -80
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "26e71784-c45b-4b27-8104-a7491b58a984",
+      "name": "Manual Trigger - Test Lead Gen",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 7,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "3d8c0d1d-4af2-42a6-a7cc-3cc06af03012",
+      "name": "Schedule - Daily Lead Gen 7AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -160,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "PUT_YOUR_GOOGLE_SHEET_ID_HERE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "TargetDomains"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Processed",
+              "lookupValue": "No"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4ba1d0b5-ae7a-4f9c-b6bd-f9b57c5c680b",
+      "name": "Get Unprocessed Domains",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [
+        100,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "ac765638-e478-41aa-beef-25d5e33ab6e4",
+      "name": "Loop Domains",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        340,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.hunter.io/v2/domain-search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "specifyQuery": "keypair",
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "domain",
+              "value": "={{ $json.Domain }}"
+            },
+            {
+              "name": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "sendHeaders": false,
+        "sendBody": false,
+        "options": {}
+      },
+      "id": "7a7ca797-4d7a-4de0-9434-6cf62cc011f4",
+      "name": "Hunter - Find Emails At Domain",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        40
+      ],
+      "notes": "Uses a 'Query Auth' credential (name=api_key, value=your Hunter.io key) so the key is never stored in this file."
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const results = [];\nfor (const item of $input.all()) {\n  const data = item.json.data || {};\n  const domain = data.domain || '';\n  const emails = data.emails || [];\n  for (const e of emails) {\n    if (!e.value) continue;\n    results.push({\n      json: {\n        Email: e.value,\n        FirstName: e.first_name || '',\n        LastName: e.last_name || '',\n        Title: e.position || '',\n        Company: domain,\n        Status: 'New',\n        DateAdded: new Date().toISOString()\n      }\n    });\n  }\n}\nreturn results;"
+      },
+      "id": "ce798c64-0fbf-4434-b264-1846bbdb1589",
+      "name": "Extract Leads From Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        -60
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "PUT_YOUR_GOOGLE_SHEET_ID_HERE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Leads"
+        },
+        "dataMode": "autoMapInputData",
+        "columnToMatchOn": "Email",
+        "options": {}
+      },
+      "id": "12cfb62e-d9b1-4ab1-83ac-9b1b94308d01",
+      "name": "Add Or Update Leads",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [
+        1120,
+        -60
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "120fede0-6a4f-4250-a4f2-5867e7c59df9",
+              "name": "Domain",
+              "value": "={{ $json.data.domain }}",
+              "type": "string"
+            },
+            {
+              "id": "513e3498-672f-41d9-adf8-a54ad03a168f",
+              "name": "Processed",
+              "value": "Yes",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e4714c32-00bd-41fe-9a2f-befdae7a14d2",
+      "name": "Prepare Domain Update",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        860,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "PUT_YOUR_GOOGLE_SHEET_ID_HERE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "TargetDomains"
+        },
+        "dataMode": "autoMapInputData",
+        "columnToMatchOn": "Domain",
+        "options": {}
+      },
+      "id": "371baab4-bff7-4b1f-b748-13a3a9aec9b0",
+      "name": "Mark Domain Processed",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [
+        1120,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 9,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "609b5dd2-5081-48ab-9ab3-1f3c769691ff",
+      "name": "Schedule - Daily Send 9AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -160,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "PUT_YOUR_GOOGLE_SHEET_ID_HERE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Leads"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "New"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e96fea11-73db-44b2-95ff-0402c3ba5b16",
+      "name": "Get New Leads",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [
+        100,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "ee685e82-a528-4b28-be2a-438f463d280c",
+      "name": "Loop New Leads",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        340,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a769c6a7-d887-45d5-aa2a-a3701e4568c3",
+              "name": "Subject",
+              "value": "=Is {{ $json.Company }} still running on separate systems?",
+              "type": "string"
+            },
+            {
+              "id": "7aa55da2-d835-48c2-9ba9-f7edb546fcd5",
+              "name": "Body",
+              "value": "=Hi {{ $json.FirstName }},\n\nQuick question \u2014 is {{ $json.Company }} still juggling separate tools (or spreadsheets) for accounts, inventory, sales, and HR?\n\nI wanted to introduce you to Smart Business 24, an all-in-one ERP built by Daffodil Software Ltd specifically for businesses operating in Bangladesh \u2014 not a scaled-down foreign platform, but one designed around how local businesses actually work (VAT/tax compliance, POS, distribution, the works).\n\nA few things teams like yours tend to value:\n- One system for Accounts, Sales, Purchase, Inventory, Manufacturing, HR, and POS \u2014 no more re-entering the same data in three places\n- A live analytical dashboard, so you see cash flow, stock, and sales without waiting on a month-end report\n- Built and supported locally, so pricing, onboarding, and support are built for the Bangladeshi market\n\nDaffodil Software has been building business software for over 25 years and is Bangladesh's official Odoo partner, so {{ $json.Company }} would be in good company.\n\nWould you be open to a 15-minute call this week to see if it's a fit? Happy to send a short demo video first if that's easier.\n\nBest,\n[Your Name]\n[Your Role] \u00b7 Smart Business 24\n[Phone] \u00b7 [Email]",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "29b953c2-5664-4784-b666-89e8b5b30037",
+      "name": "Build Email Content",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        600,
+        700
+      ],
+      "notes": "Personalized for Smart Business 24 (Daffodil Software Ltd). Edit the bracketed signature fields before activating."
+    },
+    {
+      "parameters": {
+        "fromEmail": "you@yourdomain.com",
+        "toEmail": "={{ $json.Email }}",
+        "subject": "={{ $json.Subject }}",
+        "emailFormat": "text",
+        "text": "={{ $json.Body }}",
+        "options": {}
+      },
+      "id": "76d257d1-71be-4cc0-b676-a2c61371c6e3",
+      "name": "Send Outreach Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        860,
+        700
+      ],
+      "notes": "Replace 'you@yourdomain.com' with your real sending address, and select your SMTP credential (Brevo, Gmail SMTP, etc.)."
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1cb25544-c040-4df6-bb58-18ba360f124b",
+              "name": "Email",
+              "value": "={{ $json.Email }}",
+              "type": "string"
+            },
+            {
+              "id": "eec7cafb-7941-48ad-8af8-db7e1bab7d23",
+              "name": "Status",
+              "value": "Sent",
+              "type": "string"
+            },
+            {
+              "id": "30ccfc21-b814-4046-86ec-0aab3ce443f6",
+              "name": "DateSent",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {},
+        "include": "none"
+      },
+      "id": "0df06b80-fd34-4cbb-b8f4-7d40526aceb0",
+      "name": "Prepare Sent Update",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "PUT_YOUR_GOOGLE_SHEET_ID_HERE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Leads"
+        },
+        "dataMode": "autoMapInputData",
+        "columnToMatchOn": "Email",
+        "options": {}
+      },
+      "id": "89e868ed-bb00-4bdc-8bdd-a499bd649dce",
+      "name": "Mark Lead As Sent",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [
+        1380,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "f530edd2-8fb1-4c37-9095-054b32fb1517",
+      "name": "Throttle Before Next Send",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1640,
+        700
+      ],
+      "notes": "Small delay between sends so you don't blast your SMTP provider all at once."
+    },
+    {
+      "parameters": {
+        "mailbox": "INBOX",
+        "postProcessAction": "read",
+        "downloadAttachments": false,
+        "format": "simple",
+        "options": {
+          "trackLastMessageId": true
+        }
+      },
+      "id": "7ea7cdb0-c301-4cd6-b4ba-981ab3901a64",
+      "name": "Watch Inbox For Replies",
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2.1,
+      "position": [
+        -160,
+        1260
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const item = $input.item.json;\nlet fromRaw = item.from;\nlet email = '';\nlet name = '';\nif (typeof fromRaw === 'string') {\n  const match = fromRaw.match(/<([^>]+)>/);\n  email = match ? match[1] : fromRaw.trim();\n  name = fromRaw.replace(/<[^>]+>/, '').replace(/[\"']/g, '').trim();\n} else if (fromRaw && typeof fromRaw === 'object') {\n  if (fromRaw.value && Array.isArray(fromRaw.value) && fromRaw.value[0]) {\n    email = fromRaw.value[0].address || '';\n    name = fromRaw.value[0].name || '';\n  } else if (fromRaw.text) {\n    const match = fromRaw.text.match(/<([^>]+)>/);\n    email = match ? match[1] : fromRaw.text.trim();\n    name = fromRaw.text.replace(/<[^>]+>/, '').replace(/[\"']/g, '').trim();\n  }\n}\nreturn {\n  json: {\n    SenderEmail: (email || '').toLowerCase().trim(),\n    SenderName: name,\n    Subject: item.subject || '(no subject)'\n  }\n};"
+      },
+      "id": "7084032c-e2c3-43ed-a210-07ebd327b51a",
+      "name": "Extract Sender Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        1260
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "PUT_YOUR_GOOGLE_SHEET_ID_HERE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Leads"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Email",
+              "lookupValue": "={{ $json.SenderEmail }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c607b1ef-cda7-4a23-af44-fa4dc2315e4a",
+      "name": "Find Matching Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [
+        340,
+        1260
+      ],
+      "notes": "If the sender isn't a known lead, this returns 0 rows and the branch simply stops here \u2014 nothing gets logged."
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e6f72a20-dbe1-4e31-9c74-cc3ca5130326",
+              "name": "Email",
+              "value": "={{ $('Extract Sender Email').item.json.SenderEmail }}",
+              "type": "string"
+            },
+            {
+              "id": "a812078e-bae2-4ae7-919c-6fe4f2784d0f",
+              "name": "Name",
+              "value": "={{ $json.FirstName }} {{ $json.LastName }}",
+              "type": "string"
+            },
+            {
+              "id": "9166383d-7a98-4484-bbdb-91205fc48cd6",
+              "name": "Subject",
+              "value": "={{ $('Extract Sender Email').item.json.Subject }}",
+              "type": "string"
+            },
+            {
+              "id": "b69b8675-9163-47ee-b776-2e9a88ac85a1",
+              "name": "ReceivedDate",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "7cf651e6-08df-44a9-adbf-def04d28ef23",
+              "name": "Notified",
+              "value": "No",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {},
+        "include": "none"
+      },
+      "id": "9954bdbc-8bd1-4b7e-b9d0-5d25ae79755f",
+      "name": "Prepare Reply Log",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        600,
+        1260
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "PUT_YOUR_GOOGLE_SHEET_ID_HERE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Replies"
+        },
+        "dataMode": "autoMapInputData",
+        "options": {}
+      },
+      "id": "a7876fba-6916-476b-9239-af6144a678f9",
+      "name": "Log Reply",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [
+        860,
+        1260
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cce50538-17e1-4a49-86c6-7f9b2bc05c98",
+              "name": "Email",
+              "value": "={{ $('Extract Sender Email').item.json.SenderEmail }}",
+              "type": "string"
+            },
+            {
+              "id": "567e653d-4d6f-4233-86dd-cd1c46d430b6",
+              "name": "Status",
+              "value": "Replied",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {},
+        "include": "none"
+      },
+      "id": "7512dd4f-134b-494c-b293-7ad8d152f50a",
+      "name": "Prepare Lead Status Update",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        1260
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "PUT_YOUR_GOOGLE_SHEET_ID_HERE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Leads"
+        },
+        "dataMode": "autoMapInputData",
+        "columnToMatchOn": "Email",
+        "options": {}
+      },
+      "id": "ab1a742b-0abc-4ca7-a844-9ead86415066",
+      "name": "Update Lead Status To Replied",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [
+        1380,
+        1260
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 8,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "070a7445-63bb-460d-8b1e-2464b677affa",
+      "name": "Schedule - Morning Digest 8AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -160,
+        1820
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "PUT_YOUR_GOOGLE_SHEET_ID_HERE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Replies"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Notified",
+              "lookupValue": "No"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cd1d89b4-c485-4837-8502-5f705fd27f7a",
+      "name": "Get Unnotified Replies",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [
+        100,
+        1820
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const items = $input.all();\nif (items.length === 0) {\n  return [];\n}\nconst rows = items.map(i => {\n  const j = i.json;\n  return `<li><strong>${j.Name || j.Email}</strong> (${j.Email}) replied: \"${j.Subject || ''}\"</li>`;\n}).join('');\nconst today = new Date().toLocaleDateString();\nreturn [{\n  json: {\n    Subject: `You have ${items.length} new repl${items.length === 1 ? 'y' : 'ies'} - ${today}`,\n    HtmlBody: `<h3>New replies (${today})</h3><ul>${rows}</ul>`\n  }\n}];"
+      },
+      "id": "dabb9877-7b4c-4877-aa97-549111133884",
+      "name": "Build Digest Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        1740
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "you@yourdomain.com",
+        "toEmail": "your-personal-inbox@example.com",
+        "subject": "={{ $json.Subject }}",
+        "emailFormat": "html",
+        "html": "={{ $json.HtmlBody }}",
+        "options": {}
+      },
+      "id": "0c6772d5-3633-4e0e-b262-b09d73d4108d",
+      "name": "Send Morning Digest",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        600,
+        1740
+      ],
+      "notes": "Replace both addresses. toEmail should be the inbox you check every morning."
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "ee3e4a0b-29fe-4a9f-be2d-284db9a8dc51",
+      "name": "Loop Replies To Mark Notified",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        340,
+        1940
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "589db66d-ee62-4a2b-9fe7-2c6814603c8c",
+              "name": "row_number",
+              "value": "={{ $json.row_number }}",
+              "type": "string"
+            },
+            {
+              "id": "5e41a74c-d8d7-41b2-b36d-50c2e46e6e9d",
+              "name": "Notified",
+              "value": "Yes",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {},
+        "include": "none"
+      },
+      "id": "d35398a1-060d-4f00-9ca7-67214bb53e9d",
+      "name": "Prepare Notified Update",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        600,
+        1940
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "PUT_YOUR_GOOGLE_SHEET_ID_HERE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Replies"
+        },
+        "dataMode": "autoMapInputData",
+        "columnToMatchOn": "row_number",
+        "options": {}
+      },
+      "id": "a582c296-8d38-4b7e-85e4-b25f413fb244",
+      "name": "Mark Reply Notified",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [
+        860,
+        1940
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger - Test Lead Gen": {
+      "main": [
+        [
+          {
+            "node": "Get Unprocessed Domains",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule - Daily Lead Gen 7AM": {
+      "main": [
+        [
+          {
+            "node": "Get Unprocessed Domains",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Unprocessed Domains": {
+      "main": [
+        [
+          {
+            "node": "Loop Domains",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Domains": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Hunter - Find Emails At Domain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter - Find Emails At Domain": {
+      "main": [
+        [
+          {
+            "node": "Extract Leads From Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prepare Domain Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Leads From Response": {
+      "main": [
+        [
+          {
+            "node": "Add Or Update Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Domain Update": {
+      "main": [
+        [
+          {
+            "node": "Mark Domain Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Domain Processed": {
+      "main": [
+        [
+          {
+            "node": "Loop Domains",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule - Daily Send 9AM": {
+      "main": [
+        [
+          {
+            "node": "Get New Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get New Leads": {
+      "main": [
+        [
+          {
+            "node": "Loop New Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop New Leads": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Build Email Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Email Content": {
+      "main": [
+        [
+          {
+            "node": "Send Outreach Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Outreach Email": {
+      "main": [
+        [
+          {
+            "node": "Prepare Sent Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Sent Update": {
+      "main": [
+        [
+          {
+            "node": "Mark Lead As Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Lead As Sent": {
+      "main": [
+        [
+          {
+            "node": "Throttle Before Next Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Throttle Before Next Send": {
+      "main": [
+        [
+          {
+            "node": "Loop New Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Watch Inbox For Replies": {
+      "main": [
+        [
+          {
+            "node": "Extract Sender Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Sender Email": {
+      "main": [
+        [
+          {
+            "node": "Find Matching Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Matching Lead": {
+      "main": [
+        [
+          {
+            "node": "Prepare Reply Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Reply Log": {
+      "main": [
+        [
+          {
+            "node": "Log Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Reply": {
+      "main": [
+        [
+          {
+            "node": "Prepare Lead Status Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Lead Status Update": {
+      "main": [
+        [
+          {
+            "node": "Update Lead Status To Replied",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule - Morning Digest 8AM": {
+      "main": [
+        [
+          {
+            "node": "Get Unnotified Replies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Unnotified Replies": {
+      "main": [
+        [
+          {
+            "node": "Build Digest Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loop Replies To Mark Notified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Digest Email": {
+      "main": [
+        [
+          {
+            "node": "Send Morning Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Replies To Mark Notified": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Prepare Notified Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Notified Update": {
+      "main": [
+        [
+          {
+            "node": "Mark Reply Notified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Reply Notified": {
+      "main": [
+        [
+          {
+            "node": "Loop Replies To Mark Notified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "ba366d31-0bb3-4c8b-a915-a63586ded75c"
+  },
+  "tags": []
+}
