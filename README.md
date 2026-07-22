@@ -10,7 +10,7 @@
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blueviolet.svg)
 ![Stars](https://img.shields.io/github/stars/MusaIslamFahad/n8n-lead-outreach-pipeline?style=social)
 
-An end-to-end, self-hosted lead generation and cold outreach pipeline built as a single [n8n](https://n8n.io) workflow. It finds contacts at target companies, emails them automatically, watches your inbox for replies, and sends you a daily digest — all backed by a Google Sheet as the "database."
+An end-to-end, self-hosted lead generation and cold outreach pipeline built as a single [n8n](https://n8n.io) workflow. It finds contacts at target companies, emails them automatically, watches your inbox for replies, and sends you a daily digest - all backed by a Google Sheet as the "database."
 
 </div>
 
@@ -81,7 +81,7 @@ In n8n's **Credentials** panel, add:
 - **Google Sheets — OAuth2** (used by all the Google Sheets nodes)
 - **SMTP** (used by the "Send Outreach Email" and "Send Morning Digest" nodes)
 - **IMAP** (used by "Watch Inbox For Replies")
-- **Query Auth** for Hunter.io — name the parameter `api_key` and paste your Hunter.io API key as the value (used by "Hunter - Find Emails At Domain")
+- **Query Auth** for Hunter.io - name the parameter `api_key` and paste your Hunter.io API key as the value (used by "Hunter - Find Emails At Domain")
 
 ### 4. Wire up the sheet references
 
@@ -113,7 +113,7 @@ Once everything checks out, toggle **Active** in the top-right of the n8n editor
 
 ## Notes & customization ideas
 
-- **Rate limiting**: the `Throttle Before Next Send` node waits 30 seconds between outreach emails to avoid tripping spam filters — adjust as needed for your sending domain's reputation and volume.
+- **Rate limiting**: the `Throttle Before Next Send` node waits 30 seconds between outreach emails to avoid tripping spam filters - adjust as needed for your sending domain's reputation and volume.
 - **Hunter.io limits**: the free tier caps monthly domain searches; the `limit` query parameter on the Hunter request is set to `10` contacts per domain.
 - **Matching replies to leads**: reply detection matches purely on sender email address against the `Leads` sheet, so make sure leads reply from the same address you emailed.
 - **Swap the data store**: the workflow uses Google Sheets for simplicity, but the same shape (append/update/read by column) maps cleanly onto Airtable, Postgres, or Notion if you'd rather not use Sheets.
